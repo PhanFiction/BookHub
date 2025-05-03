@@ -1,0 +1,1 @@
+# Bookhub is a library where users can create books and store them to the database
