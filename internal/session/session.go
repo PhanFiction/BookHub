@@ -27,6 +27,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 }
 
+func SignupHandler(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	// Save user to database
+	// Hash password
+
+	// Redirect to login
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := Store.Get(r, "session")
 
