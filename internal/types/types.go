@@ -12,5 +12,10 @@ type BookDetails struct {
 	PublishedAt string
 }
 
+type Data struct {
+	BookData      BookDetails
+	Authenticated bool
+}
+
 // Type function that takes an http.HandlerFunc and returns another http.HandlerFunc.
 type Middleware func(http.HandlerFunc) http.HandlerFunc
