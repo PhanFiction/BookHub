@@ -12,7 +12,7 @@ func CreateUserTable(db *sql.DB) {
 	query := `
 	CREATE TABLE IF NOT EXISTS users (
 		id SERIAL PRIMARY KEY,
-		google_id TEXT UNIQUE NOT NULL,
+		google_id TEXT UNIQUE,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT,
 		username TEXT,
@@ -45,4 +45,20 @@ func GetUsersTable(db *sql.DB) []string {
 
 	fmt.Println(usernames)
 	return usernames
+}
+
+func SaveUser(db *sql.DB, email, name, username, password string) {
+	query := `
+	INSERT INTO users (email, name, username, password)
+	VALUES ($1, $2, $3, $4)
+	ON CONFLICT DO NOTHING;
+	`
+
+	_, err := db.Exec(query, email, name, username)
+
+	if err != nil {
+		log.Fatal("Error saving user to database:", err)
+	}
+
+	fmt.Println("User saved to database.")
 }
