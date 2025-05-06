@@ -14,6 +14,8 @@ type BookDetails struct {
 
 type Data struct {
 	BookData      BookDetails
+	Message       string
+	Success       bool
 	Authenticated bool
 }
 
