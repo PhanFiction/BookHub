@@ -1,6 +1,8 @@
 package session
 
 import (
+	"bookhub/internal/auth"
+	"bookhub/internal/database"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -27,17 +29,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 }
 
-func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-
-	// Save user to database
-	// Hash password
-
-	// Redirect to login
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
-}
-
+// Handles the logout process
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := Store.Get(r, "session")
 
@@ -58,4 +50,28 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 		next(w, r)
 	}
+}
+
+func SignupHandler(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	// Save user to database
+	// Hash password
+	hashedPassword, err := auth.HashPassword(password)
+	if err != nil {
+		http.Error(w, "Could not hash password", http.StatusInternalServerError)
+		return
+	}
+
+	// Save user to database
+	database.SaveUser(database.DB, email, name, username, hashedPassword)
+	// db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
+	// For now, just print to console
+	// fmt.Printf("User %s with password %s saved to database\n", username, hashedPassword)
+
+	// Redirect to login
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
