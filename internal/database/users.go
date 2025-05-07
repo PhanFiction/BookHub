@@ -15,7 +15,7 @@ func CreateUserTable(db *sql.DB) {
 		google_id TEXT UNIQUE,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT,
-		username TEXT,
+		username TEXT UNIQUE NOT NULL,
 		avatar_url TEXT,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
