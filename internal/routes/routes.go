@@ -10,8 +10,8 @@ import (
 )
 
 func SetupRoutes(r *mux.Router) {
-	r.HandleFunc("/books/{title}/id/{id}", middleware.Chain(handlers.FetchBookHandler, middleware.Logging())).Methods("GET")
-	r.HandleFunc("/create-book", middleware.Chain(handlers.CreateBookHandler, middleware.Logging())).Methods("POST")
+	r.HandleFunc("/books/{title}/id/{id}", middleware.Chain(session.AuthMiddleware(handlers.FetchBookHandler), middleware.Logging()))
+	r.HandleFunc("/create-book", middleware.Chain(session.AuthMiddleware(handlers.CreateBookHandler), middleware.Logging())).Methods("POST")
 	r.HandleFunc("/", middleware.Chain(handlers.HomeHandler, middleware.Logging())).Methods("GET")
 
 	// Auth
