@@ -11,8 +11,9 @@ import (
 func CreateUserTable(db *sql.DB) {
 	query := `
 	CREATE TABLE IF NOT EXISTS users (
-		id SERIAL PRIMARY KEY,
+		id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 		google_id TEXT UNIQUE,
+		password Text,
 		email TEXT UNIQUE NOT NULL,
 		name TEXT,
 		username TEXT UNIQUE NOT NULL,
@@ -54,7 +55,7 @@ func SaveUser(db *sql.DB, email, name, username, password string) {
 	ON CONFLICT DO NOTHING;
 	`
 
-	_, err := db.Exec(query, email, name, username)
+	_, err := db.Exec(query, email, name, username, password)
 
 	if err != nil {
 		log.Fatal("Error saving user to database:", err)
