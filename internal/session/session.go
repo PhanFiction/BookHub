@@ -3,6 +3,7 @@ package session
 import (
 	"bookhub/internal/auth"
 	"bookhub/internal/database"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -13,45 +14,35 @@ import (
 var Store = sessions.NewCookieStore([]byte("super-secret-key"))
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	// username := r.FormValue("username")
+	// password := r.FormValue("password")
 
-	if username == "admin" && password == "password" {
-		session, _ := Store.Get(r, "session")
-		// Authentication goes here
-		// Set user as authenticated
-		session.Values["authenticated"] = true
-		session.Save(r, w)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	username := "tester"
+	password := "tester"
+
+	var hashedPassword string
+
+	// Check if user exists in the database
+	database.DB.QueryRow("SELECT password FROM users WHERE username = $1", username).Scan(&hashedPassword)
+
+	isValid := auth.CheckPasswordHash(password, hashedPassword)
+
+	if !isValid {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
 
-	http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-}
-
-// Handles the logout process
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := Store.Get(r, "session")
-
-	// Revoke users authentication
-	session.Values["authenticated"] = false
+	// Authentication goes here
+	// Set user as authenticated
+	session.Values["authenticated"] = true
+	session.Values["username"] = username
+	fmt.Println("username and password", username, password)
 	session.Save(r, w)
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Middleware to check if user is authenticated
-func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := Store.Get(r, "session")
-		auth, ok := session.Values["authenticated"].(bool)
-		if !ok || !auth {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-		next(w, r)
-	}
-}
-
+// Handles the signup process
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	name := r.FormValue("name")
@@ -74,4 +65,41 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to login
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// Handles the logout process
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := Store.Get(r, "session")
+
+	// Revoke users authentication
+	session.Values["authenticated"] = false
+	session.Save(r, w)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// Middleware to check if user is authenticated
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := Store.Get(r, "session")
+		auth, ok := session.Values["authenticated"].(bool)
+		if !ok || !auth {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+		next(w, r)
+	}
+}
+
+func CreateFakeUser() {
+	hashedPassword, err := auth.HashPassword("tester")
+	if err != nil {
+		fmt.Println("Could not hash password")
+		return
+	}
+
+	// Save user to database
+	database.SaveUser(database.DB, "tester@gmail.com", "Tester", "tester", hashedPassword)
+	// db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
+	// For now, just print to console
+	fmt.Printf("User %s with password %s saved to database\n", "tester", hashedPassword)
 }
