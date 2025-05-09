@@ -25,3 +25,19 @@ content-type: application/json
   "ISBN": "978-0786838653",
   "Description": "A young boy discovers he is a demigod and embarks on a quest to prevent a war among the gods."
 }
+
+###
+GET http://localhost:8080/books/3
+
+###
+PUT http://localhost:8080/books/update-books/3
+content-type: application/json
+
+{
+  "Title": "Percy Jackson and the Olympians: The Sea of Monsters",
+  "Author": "Rick Riordan",
+  "Publisher": "Disney Hyperion",
+  "Year": 2006,
+  "ISBN": "978-0786838655",
+  "Description": "Percy Jackson returns for another adventure in the world of Greek mythology."
+}
