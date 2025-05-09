@@ -3,6 +3,8 @@ package session
 import (
 	"bookhub/internal/auth"
 	"bookhub/internal/database"
+	"bookhub/internal/types"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -14,57 +16,67 @@ import (
 var Store = sessions.NewCookieStore([]byte("super-secret-key"))
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// username := r.FormValue("username")
-	// password := r.FormValue("password")
+	var body types.User
+	json.NewDecoder(r.Body).Decode(&body)
 
-	username := "tester"
-	password := "tester"
-
-	var hashedPassword string
+	//fmt.Println(body, body.Username)
 
 	// Check if user exists in the database
-	database.DB.QueryRow("SELECT password FROM users WHERE username = $1", username).Scan(&hashedPassword)
+	userData, err := database.GetUser(database.DB, body.Username)
+	if err != nil {
+		http.Error(w, "Could not retrieve user", http.StatusInternalServerError)
+		return
+	}
 
-	isValid := auth.CheckPasswordHash(password, hashedPassword)
+	isValid := auth.CheckPasswordHash(body.Password, userData.Password)
 
 	if !isValid {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
+	fmt.Println("username and password", userData.Username, userData.Password)
 
 	session, _ := Store.Get(r, "session")
 	// Authentication goes here
 	// Set user as authenticated
 	session.Values["authenticated"] = true
-	session.Values["username"] = username
-	fmt.Println("username and password", username, password)
+	session.Values["user_id"] = userData.ID
+	session.Values["username"] = userData.Username
 	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // Handles the signup process
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	name := r.FormValue("name")
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	var body types.User
+	json.NewDecoder(r.Body).Decode(&body)
 
 	// Save user to database
 	// Hash password
-	hashedPassword, err := auth.HashPassword(password)
+	hashedPassword, err := auth.HashPassword(body.Password)
 	if err != nil {
 		http.Error(w, "Could not hash password", http.StatusInternalServerError)
 		return
 	}
 
 	// Save user to database
-	database.SaveUser(database.DB, email, name, username, hashedPassword)
-	// db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
-	// For now, just print to console
-	// fmt.Printf("User %s with password %s saved to database\n", username, hashedPassword)
+	database.CreateUser(database.DB, body.Email, body.Name, body.Username, hashedPassword)
 
 	// Redirect to login
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := Store.Get(r, "session")
+	userID, _ := session.Values["user_id"].(int)
+	var body types.User
+	json.NewDecoder(r.Body).Decode(&body)
+
+	database.UpdateUser(database.DB, userID, body.Name, body.Username, body.Email, body.Password)
+	data := types.Data{
+		Message: "User updated successfully",
+	}
+	json.NewEncoder(w).Encode(data)
 }
 
 // Handles the logout process
@@ -98,7 +110,7 @@ func CreateFakeUser() {
 	}
 
 	// Save user to database
-	database.SaveUser(database.DB, "tester@gmail.com", "Tester", "tester", hashedPassword)
+	database.CreateUser(database.DB, "tester@gmail.com", "Tester", "tester", hashedPassword)
 	// db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
 	// For now, just print to console
 	fmt.Printf("User %s with password %s saved to database\n", "tester", hashedPassword)
