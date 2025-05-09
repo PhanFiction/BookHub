@@ -8,3 +8,20 @@ content-type: application/json
   "Username": "tester",
   "Password": "tester"
 }
+
+### 
+GET http://localhost:8080/books
+
+###
+
+POST http://localhost:8080/books/create-books
+content-type: application/json
+
+{
+  "Title": "Percy Jackson and the Olympians: The Lightning Thief",
+  "Author": "Rick Riordan",
+  "Publisher": "Disney Hyperion",
+  "Year": 2005,
+  "ISBN": "978-0786838653",
+  "Description": "A young boy discovers he is a demigod and embarks on a quest to prevent a war among the gods."
+}
