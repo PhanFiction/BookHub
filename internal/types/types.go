@@ -3,6 +3,7 @@ package types
 import "net/http"
 
 type BookDetails struct {
+	ID          int
 	Title       string
 	Author      string
 	Pages       int
@@ -17,6 +18,15 @@ type Data struct {
 	Message       string
 	Success       bool
 	Authenticated bool
+}
+
+type User struct {
+	ID       int
+	Username string
+	Name     string
+	Email    string
+	Password string
+	Avatar   string
 }
 
 // Type function that takes an http.HandlerFunc and returns another http.HandlerFunc.
