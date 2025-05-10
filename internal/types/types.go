@@ -11,6 +11,7 @@ type BookDetails struct {
 	ISBN        string
 	Description string
 	PublishedAt string
+	Genre       string
 }
 
 type Data struct {
