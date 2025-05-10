@@ -1,6 +1,7 @@
 package database
 
 import (
+	"bookhub/internal/types"
 	"database/sql"
 	"fmt"
 	"log"
@@ -31,24 +32,23 @@ func CreateUserTable(db *sql.DB) {
 	fmt.Println("Users table created or already exists.")
 }
 
-func GetUsersTable(db *sql.DB) []string {
-	query := `SELECT username FROM usernames;`
+func GetUser(db *sql.DB, username string) (types.User, error) {
+	query := `SELECT id, username, name, email, password FROM users WHERE username = $1;`
+	var user types.User
 
-	rows, _ := db.Query(query)
+	// return single row
+	err := db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.Password)
 
-	var usernames []string
+	fmt.Println(user, err)
 
-	for rows.Next() {
-		var username string
-		rows.Scan(&username)
-		usernames = append(usernames, username)
+	if err != nil {
+		return user, err
 	}
 
-	fmt.Println(usernames)
-	return usernames
+	return user, nil
 }
 
-func SaveUser(db *sql.DB, email, name, username, password string) {
+func CreateUser(db *sql.DB, email, name, username, password string) {
 	query := `
 	INSERT INTO users (email, name, username, password)
 	VALUES ($1, $2, $3, $4)
@@ -62,4 +62,16 @@ func SaveUser(db *sql.DB, email, name, username, password string) {
 	}
 
 	fmt.Println("User saved to database.")
+}
+
+func UpdateUser(db *sql.DB, id string, name, username, email, password string) error {
+	query := `UPDATE users SET name = $1, username = $2, email = $3, password = $4 WHERE id = $5;`
+	_, err := db.Exec(query, name, username, email, password, id)
+
+	if err != nil {
+		log.Fatal("Error updating user:", err)
+	}
+	fmt.Println("User updated successfully.")
+
+	return err
 }
