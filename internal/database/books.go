@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// Create a book table if it doesnt exist
 func CreateBookTable(db *sql.DB) {
 	query := `
 	CREATE TABLE IF NOT EXISTS books (
@@ -31,6 +32,7 @@ func CreateBookTable(db *sql.DB) {
 	fmt.Println("Books table created or already exists.")
 }
 
+// Create saved book table if it doesnt exist
 func CreateSavedBooksTable(db *sql.DB) {
 	query := `
 	CREATE TABLE IF NOT EXISTS saved_books (
@@ -50,20 +52,21 @@ func CreateSavedBooksTable(db *sql.DB) {
 }
 
 // Fetch book from db based on data provided
-func FetchBook(db *sql.DB, query string) []types.BookDetails {
+func FetchBooks(db *sql.DB, query string) []types.BookDetails {
 	rows, err := db.Query(query) // Return all rows of books from the books table
 
 	if err != nil {
 		log.Fatal("Error fetching book:", err)
 	}
 
-	var title, author, publisher, isbn, description, publishedAt string
+	var title, author, publisher, isbn, description, publishedAt, genre string
 	var id int
 	var pages int
 	book := []types.BookDetails{}
 
+	// Iterate through the rows and scan the values into variables
 	for rows.Next() {
-		err := rows.Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt)
+		err := rows.Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre)
 		if err != nil {
 			log.Fatal("Error scanning book:", err)
 		}
@@ -77,6 +80,7 @@ func FetchBook(db *sql.DB, query string) []types.BookDetails {
 			ISBN:        isbn,
 			Description: description,
 			PublishedAt: publishedAt,
+			Genre:       genre,
 		})
 
 		// fmt.Printf("Title: %s\nAuthor: %s\nPages: %d\nPublisher: %s\nISBN: %s\nDescription: %s\nPublished At: %s\n", title, author, pages, publisher, isbn, description, publishedAt)
@@ -85,14 +89,42 @@ func FetchBook(db *sql.DB, query string) []types.BookDetails {
 	return book
 }
 
+// Fetch a single book from the database
+func FetchSingleBook(db *sql.DB, bookId string) types.BookDetails {
+	var title, author, publisher, isbn, description, publishedAt, genre string
+	var id int
+	var pages int
+
+	query := `SELECT * FROM books	WHERE id = $1;`
+
+	err := db.QueryRow(query, bookId).Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre)
+
+	if err != nil {
+		log.Fatal("Error fetching single book:", err)
+	}
+
+	return types.BookDetails{
+		ID:          id,
+		Title:       title,
+		Author:      author,
+		Pages:       pages,
+		Publisher:   publisher,
+		ISBN:        isbn,
+		Description: description,
+		PublishedAt: publishedAt,
+		Genre:       genre,
+	}
+}
+
+// Create a book in the database
 func CreateBook(db *sql.DB, BookDetails types.BookDetails) {
 	query := `
-		INSERT INTO books (title, author, pages, publisher, isbn, description, published_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO books (title, author, pages, publisher, isbn, description, published_at, genre)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (isbn) DO NOTHING;
 	`
 	fmt.Println("Creating book:", BookDetails.Title)
-	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt)
+	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre)
 
 	if err != nil {
 		log.Fatal("Error creating book:", err)
@@ -101,22 +133,29 @@ func CreateBook(db *sql.DB, BookDetails types.BookDetails) {
 	fmt.Println("Book created in database.")
 }
 
-func UpdateBook(db *sql.DB, bookID int, title, author string, pages int, publisher, isbn, description, publishedAt string) {
+// Update a book in the database
+func UpdateBook(db *sql.DB, BookDetails types.BookDetails, bookId string) error {
 	query := `
 	UPDATE books
-	SET title = $1, author = $2, pages = $3, publisher = $4, isbn = $5, description = $6, published_at = $7
-	WHERE id = $8;
+	SET title = $1, author = $2, pages = $3, publisher = $4, isbn = $5, description = $6, published_at = $7, genre = $8
+	WHERE id = $9;
 	`
-	_, err := db.Exec(query, title, author, pages, publisher, isbn, description, publishedAt, bookID)
+
+	fmt.Println(BookDetails.Genre)
+
+	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre, bookId)
 
 	if err != nil {
 		log.Fatal("Error updating book:", err)
 	}
 
 	fmt.Println("Book updated in database.")
+
+	return err
 }
 
-func DeleteBook(db *sql.DB, bookID int) {
+// Delete a book from the database
+func DeleteBook(db *sql.DB, bookID string) error {
 	query := `
 	DELETE FROM books
 	WHERE id = $1;
@@ -128,8 +167,11 @@ func DeleteBook(db *sql.DB, bookID int) {
 	}
 
 	fmt.Println("Book deleted from database.")
+
+	return err
 }
 
+// Save a book to the database
 func SaveBook(db *sql.DB, userID, bookID int) {
 	query := `
 	INSERT INTO saved_books (user_id, book_id)
