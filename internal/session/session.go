@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/sessions"
 )
@@ -15,14 +16,15 @@ import (
 // key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
 var Store = sessions.NewCookieStore([]byte("super-secret-key"))
 
+// Handles login for user
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var body types.User
 	json.NewDecoder(r.Body).Decode(&body)
 
-	//fmt.Println(body, body.Username)
-
 	// Check if user exists in the database
 	userData, err := database.GetUser(database.DB, body.Username)
+	fmt.Println(userData.Username, userData.Password)
+
 	if err != nil {
 		http.Error(w, "Could not retrieve user", http.StatusInternalServerError)
 		return
@@ -34,7 +36,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("username and password", userData.Username, userData.Password)
 
 	session, _ := Store.Get(r, "session")
 	// Authentication goes here
@@ -42,8 +43,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	session.Values["authenticated"] = true
 	session.Values["user_id"] = userData.ID
 	session.Values["username"] = userData.Username
+	session.Values["email"] = userData.Email
 	session.Save(r, w)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	// Send JSON Data
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Login successful",
+		"authenticated": true,
+		"user_id":       userData.ID,
+		"username":      userData.Username,
+	})
 }
 
 // Handles the signup process
@@ -69,14 +78,34 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := Store.Get(r, "session")
 	userID, _ := session.Values["user_id"].(int)
+
 	var body types.User
 	json.NewDecoder(r.Body).Decode(&body)
 
-	database.UpdateUser(database.DB, userID, body.Name, body.Username, body.Email, body.Password)
-	data := types.Data{
-		Message: "User updated successfully",
+	hashedPassword, password_err := auth.HashPassword(body.Password)
+	if password_err != nil {
+		fmt.Println("Could not hash password")
+		return
 	}
-	json.NewEncoder(w).Encode(data)
+
+	userIdString := strconv.Itoa(userID)
+
+	err := database.UpdateUser(database.DB, userIdString, body.Name, body.Username, body.Email, hashedPassword)
+
+	if err != nil {
+		http.Error(w, "Could not update account.", http.StatusInternalServerError)
+		return
+	}
+
+	session.Values["username"] = body.Username
+	session.Values["email"] = body.Email
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Login successful",
+		"authenticated": true,
+		"user_id":       userID,
+		"username":      body.Username,
+	})
 }
 
 // Handles the logout process
@@ -86,7 +115,10 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Revoke users authentication
 	session.Values["authenticated"] = false
 	session.Save(r, w)
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":       "Logged out successful",
+		"authenticated": false,
+	})
 }
 
 // Middleware to check if user is authenticated
