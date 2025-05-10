@@ -5,39 +5,88 @@ POST http://localhost:8080/login
 content-type: application/json
 
 {
-  "Username": "tester",
+  "Username": "tester2",
   "Password": "tester"
 }
+
+###
+GET http://localhost:8080/logout
+Cookie: session=session=MTc0Njg1NDQxMnxEWDhFQVFMX2dBQUJFQUVRQUFEX2pfLUFBQVFHYzNSeWFXNW5EQThBRFdGMWRHaGxiblJwWTJGMFpXUUVZbTl2YkFJQ0FBRUdjM1J5YVc1bkRBa0FCM1Z6WlhKZmFXUURhVzUwQkFJQUFnWnpkSEpwYm1jTUNnQUlkWE5sY201aGJXVUdjM1J5YVc1bkRBa0FCM1JsYzNSbGNqSUdjM1J5YVc1bkRBY0FCV1Z0WVdsc0JuTjBjbWx1Wnd3U0FCQjBaWE4wWlhKQVoyMWhhV3d1WTI5dHyoleY3RzKZA0HRuZ4MSLg5yGCJcjINN8KF2UvPg7XyFg==; Path=/; Expires=Mon, 09 Jun 2025 05:20:12 GMT; Max-Age=2592000; Secure; SameSite=None==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
+
 
 ### 
 GET http://localhost:8080/books
 
 ###
 
-POST http://localhost:8080/books/create-books
+POST http://localhost:8080/books/create-book
+Cookie: session=MTc0NjgyNDIyOHxEWDhFQVFMX2dBQUJFQUVRQUFCal80QUFBd1p6ZEhKcGJtY01DUUFIZFhObGNsOXBaQU5wYm5RRUFnQUNCbk4wY21sdVp3d0tBQWgxYzJWeWJtRnRaUVp6ZEhKcGJtY01DQUFHZEdWemRHVnlCbk4wY21sdVp3d1BBQTFoZFhSb1pXNTBhV05oZEdWa0JHSnZiMndDQWdBQnwc_l5h58DZNUzNd7FvGFYjXDlIyd9Fo4hnjunVU4csPw==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
 content-type: application/json
 
 {
   "Title": "Percy Jackson and the Olympians: The Lightning Thief",
   "Author": "Rick Riordan",
   "Publisher": "Disney Hyperion",
-  "Year": 2005,
-  "ISBN": "978-0786838653",
-  "Description": "A young boy discovers he is a demigod and embarks on a quest to prevent a war among the gods."
+  "PublishedAt": "2005-07-28",
+  "Pages": 416,
+  "ISBN": "9780786838653",
+  "Description": "A young boy discovers he is a demigod and embarks on a quest to prevent a war among the gods.",
+  "Genre": "Adventure"
+}
+
+###
+PUT http://localhost:8080/books/update-book/3
+content-type: application/json
+Cookie: session=MTc0NjgyNDIyOHxEWDhFQVFMX2dBQUJFQUVRQUFCal80QUFBd1p6ZEhKcGJtY01DUUFIZFhObGNsOXBaQU5wYm5RRUFnQUNCbk4wY21sdVp3d0tBQWgxYzJWeWJtRnRaUVp6ZEhKcGJtY01DQUFHZEdWemRHVnlCbk4wY21sdVp3d1BBQTFoZFhSb1pXNTBhV05oZEdWa0JHSnZiMndDQWdBQnwc_l5h58DZNUzNd7FvGFYjXDlIyd9Fo4hnjunVU4csPw==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
+
+{
+  "Title": "Percy Jackson and the Olympians: The Sea of Monsters",
+  "Author": "Rick Riordan",
+  "Publisher": "Disney Hyperion",
+  "PublishedAt": "2006-04-01",
+  "Pages": 416,
+  "ISBN": "9780786838655",
+  "Description": "Percy Jackson returns for another adventure in the world of Greek mythology.",
+  "Genre": "Adventure"
 }
 
 ###
 GET http://localhost:8080/books/3
 
 ###
-PUT http://localhost:8080/books/update-books/3
+PUT http://localhost:8080/books/update-book/4
+content-type: application/json
+Cookie: session=MTc0NjgyNDIyOHxEWDhFQVFMX2dBQUJFQUVRQUFCal80QUFBd1p6ZEhKcGJtY01DUUFIZFhObGNsOXBaQU5wYm5RRUFnQUNCbk4wY21sdVp3d0tBQWgxYzJWeWJtRnRaUVp6ZEhKcGJtY01DQUFHZEdWemRHVnlCbk4wY21sdVp3d1BBQTFoZFhSb1pXNTBhV05oZEdWa0JHSnZiMndDQWdBQnwc_l5h58DZNUzNd7FvGFYjXDlIyd9Fo4hnjunVU4csPw==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
+
+{
+  "Title": "Percy Jackson and the Olympians: The Lightning Thief",
+  "Author": "Rick Riordan",
+  "Publisher": "Disney Hyperion",
+  "PublishedAt": "2005-07-28",
+  "Pages": 416,
+  "ISBN": "9780786838653",
+  "Description": "A young boy discovers he is a demigod and embarks on a quest to prevent a war among the gods.",
+  "Genre": "Adventure"
+}
+
+###
+GET http://localhost:8080/books/4
+
+###
+DELETE http://localhost:8080/books/4
+Cookie: session=MTc0NjgyNDIyOHxEWDhFQVFMX2dBQUJFQUVRQUFCal80QUFBd1p6ZEhKcGJtY01DUUFIZFhObGNsOXBaQU5wYm5RRUFnQUNCbk4wY21sdVp3d0tBQWgxYzJWeWJtRnRaUVp6ZEhKcGJtY01DQUFHZEdWemRHVnlCbk4wY21sdVp3d1BBQTFoZFhSb1pXNTBhV05oZEdWa0JHSnZiMndDQWdBQnwc_l5h58DZNUzNd7FvGFYjXDlIyd9Fo4hnjunVU4csPw==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
+
+###
+GET http://localhost:8080/books
+
+###
+PUT http://localhost:8080/update-user
+Cookie: session=MTc0NjgyNDIyOHxEWDhFQVFMX2dBQUJFQUVRQUFCal80QUFBd1p6ZEhKcGJtY01DUUFIZFhObGNsOXBaQU5wYm5RRUFnQUNCbk4wY21sdVp3d0tBQWgxYzJWeWJtRnRaUVp6ZEhKcGJtY01DQUFHZEdWemRHVnlCbk4wY21sdVp3d1BBQTFoZFhSb1pXNTBhV05oZEdWa0JHSnZiMndDQWdBQnwc_l5h58DZNUzNd7FvGFYjXDlIyd9Fo4hnjunVU4csPw==; Path=/; Expires=Sun, 08 Jun 2025 20:57:08 GMT; Max-Age=2592000; Secure; SameSite=None
 content-type: application/json
 
 {
-  "Title": "Percy Jackson and the Olympians: The Sea of Monsters",
-  "Author": "Rick Riordan",
-  "Publisher": "Disney Hyperion",
-  "Year": 2006,
-  "ISBN": "978-0786838655",
-  "Description": "Percy Jackson returns for another adventure in the world of Greek mythology."
+  "Username": "tester2",
+  "Name": "tester",
+  "Email": "tester@gmail.com",
+  "Password": "tester"
 }
