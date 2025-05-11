@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -74,4 +75,38 @@ func UpdateUser(db *sql.DB, id string, name, username, email, password string) e
 	fmt.Println("User updated successfully.")
 
 	return err
+}
+
+func GoogleAuth(db *sql.DB, UserDetail types.User) (types.User, error) {
+	var user types.User
+
+	query := `SELECT id, google_id, email, name, username, avatar_url FROM users WHERE google_id = $1 OR email = $2;`
+
+	err := db.QueryRow(query, UserDetail.GoogleID, UserDetail.Email).Scan(&user.ID, &user.GoogleID, &user.Email, &user.Name, &user.Username, &user.Avatar)
+
+	// Check if user exists
+	// If user doesn't exist, create a new user
+	// If user exists, return the user
+	if err == sql.ErrNoRows {
+		// Create user if doesn't exist
+		username := strings.Split(UserDetail.Email, "@")[0] // basic username
+		err = db.QueryRow(`
+			INSERT INTO users (google_id, email, name, username, avatar_url)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id`, UserDetail.GoogleID, UserDetail.Email, UserDetail.Name, username, UserDetail.Avatar).
+			Scan(&user.ID)
+
+		if err != nil {
+			log.Fatal("Error creating user:", err)
+		}
+
+		// Set user details
+		user.GoogleID = UserDetail.GoogleID
+		user.Email = UserDetail.Email
+		user.Name = UserDetail.Name
+		user.Username = UserDetail.Username
+		user.Avatar = UserDetail.Avatar
+	}
+
+	return user, err
 }
