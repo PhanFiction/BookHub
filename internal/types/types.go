@@ -28,6 +28,7 @@ type User struct {
 	Email    string
 	Password string
 	Avatar   string
+	GoogleID string
 }
 
 // Type function that takes an http.HandlerFunc and returns another http.HandlerFunc.
