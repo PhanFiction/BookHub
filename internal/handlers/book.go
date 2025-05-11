@@ -1,38 +1,98 @@
 package handlers
 
 import (
-	"bookhub/internal/session"
+	"bookhub/internal/database"
 	"bookhub/internal/types"
 	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Return single book from the database
-func FetchBookHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := session.Store.Get(r, "session")
-	auth, ok := session.Values["authenticated"].(bool)
+func FetchBooksHandler(w http.ResponseWriter, r *http.Request) {
+	data := database.FetchBooks(database.DB, "SELECT * FROM books;")
+	json.NewEncoder(w).Encode(data)
+}
+
+// Fetch single book from the database
+func FetchSingleBookHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // extract route variables
+	bookId := vars["id"]
+	//bookId_to_int, _ := strconv.Atoi(bookId)
+	data := database.FetchSingleBook(database.DB, bookId)
+	json.NewEncoder(w).Encode(data)
+}
+
+func UpdateBookHandler(w http.ResponseWriter, r *http.Request) {
+	var body types.BookDetails
+	json.NewDecoder(r.Body).Decode(&body)
+	vars := mux.Vars(r) // extract route variables
+	bookId := vars["id"]
+
+	BookData := types.BookDetails{
+		Title:       body.Title,
+		Author:      body.Author,
+		Pages:       body.Pages,
+		Publisher:   body.Publisher,
+		ISBN:        body.ISBN,
+		Description: body.Description,
+		PublishedAt: body.PublishedAt,
+		Genre:       body.Genre,
+	}
+
+	err := database.UpdateBook(database.DB, BookData, bookId)
+
+	if err != nil {
+		http.Error(w, "Error updating book", http.StatusInternalServerError)
+		return
+	}
 
 	data := types.Data{
-		BookData: types.BookDetails{
-			Title:       "The Great Gatsby",
-			Author:      "F. Scott Fitzgerald",
-			Pages:       180,
-			Publisher:   "Scribner",
-			ISBN:        "9780743273565",
-			Description: "A novel about the American dream.",
-			PublishedAt: "1925-04-10",
-		},
-		Authenticated: ok && auth,
+		Message: "Book updated successfully",
 	}
+
 	json.NewEncoder(w).Encode(data)
 }
 
 func CreateBookHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := session.Store.Get(r, "session")
-	auth, ok := session.Values["authenticated"].(bool)
+	var body types.BookDetails
+	json.NewDecoder(r.Body).Decode(&body)
+
+	BookData := types.BookDetails{
+		Title:       body.Title,
+		Author:      body.Author,
+		Pages:       body.Pages,
+		Publisher:   body.Publisher,
+		ISBN:        body.ISBN,
+		Description: body.Description,
+		PublishedAt: body.PublishedAt,
+		Genre:       body.Genre,
+	}
+
+	fmt.Println(body)
+
+	database.CreateBook(database.DB, BookData)
+	data := types.Data{
+		Message: "Book created successfully",
+	}
+	json.NewEncoder(w).Encode(data)
+}
+
+func DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r) // extract route variables
+	bookId := vars["id"]
+	err := database.DeleteBook(database.DB, bookId)
+
+	if err != nil {
+		http.Error(w, "Error updating book", http.StatusInternalServerError)
+		return
+	}
 
 	data := types.Data{
-		Authenticated: ok && auth,
+		Message: "Book successfully deleted",
 	}
+
 	json.NewEncoder(w).Encode(data)
 }
