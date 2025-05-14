@@ -22,6 +22,7 @@ func SetupRoutes(r *mux.Router) {
 	r.HandleFunc("/login", middleware.Chain(session.LoginHandler, middleware.Logging()))
 	r.HandleFunc("/logout", middleware.Chain(session.LogoutHandler, middleware.Logging()))
 	r.HandleFunc("/update-user", middleware.Chain(session.AuthMiddleware(session.UpdateUserHandler), middleware.Logging()))
+	r.HandleFunc("/google-auth", middleware.Chain(handlers.GoogleAuthHandler, middleware.Logging())).Methods("POST")
 
 	// Serve CSS, JS, and images from static dir
 	fs := http.FileServer(http.Dir("static/"))
