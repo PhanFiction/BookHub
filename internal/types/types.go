@@ -12,6 +12,7 @@ type BookDetails struct {
 	Description string
 	PublishedAt string
 	Genre       string
+	CoverImg    string
 }
 
 type Data struct {
