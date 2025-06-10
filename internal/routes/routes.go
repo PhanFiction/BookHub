@@ -10,6 +10,7 @@ import (
 )
 
 func SetupRoutes(r *mux.Router) {
+	// Middleware
 	r.HandleFunc("/books/{id}", middleware.Chain(handlers.FetchSingleBookHandler, middleware.Logging())).Methods("GET")
 	r.HandleFunc("/books/{id}", middleware.Chain(handlers.UpdateBookHandler, middleware.Logging())).Methods("PUT")
 	r.HandleFunc("/books/{id}", middleware.Chain(handlers.DeleteBookHandler, middleware.Logging())).Methods("DELETE")
