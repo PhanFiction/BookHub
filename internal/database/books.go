@@ -20,7 +20,9 @@ func CreateBookTable(db *sql.DB) {
 		publisher TEXT NOT NULL,
 		isbn TEXT UNIQUE NOT NULL,
 		description TEXT,
-		published_at DATE
+		published_at DATE,
+		genre TEXT,
+		cover_img TEXT DEFAULT ''
 	);
 	`
 	_, err := db.Exec(query)
@@ -59,14 +61,14 @@ func FetchBooks(db *sql.DB, query string) []types.BookDetails {
 		log.Fatal("Error fetching book:", err)
 	}
 
-	var title, author, publisher, isbn, description, publishedAt, genre string
+	var title, author, publisher, isbn, description, publishedAt, genre, cover_img string
 	var id int
 	var pages int
 	book := []types.BookDetails{}
 
 	// Iterate through the rows and scan the values into variables
 	for rows.Next() {
-		err := rows.Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre)
+		err := rows.Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre, &cover_img)
 		if err != nil {
 			log.Fatal("Error scanning book:", err)
 		}
@@ -81,6 +83,7 @@ func FetchBooks(db *sql.DB, query string) []types.BookDetails {
 			Description: description,
 			PublishedAt: publishedAt,
 			Genre:       genre,
+			CoverImg:    cover_img,
 		})
 
 		// fmt.Printf("Title: %s\nAuthor: %s\nPages: %d\nPublisher: %s\nISBN: %s\nDescription: %s\nPublished At: %s\n", title, author, pages, publisher, isbn, description, publishedAt)
@@ -91,13 +94,13 @@ func FetchBooks(db *sql.DB, query string) []types.BookDetails {
 
 // Fetch a single book from the database
 func FetchSingleBook(db *sql.DB, bookId string) types.BookDetails {
-	var title, author, publisher, isbn, description, publishedAt, genre string
+	var title, author, publisher, isbn, description, publishedAt, genre, cover_img string
 	var id int
 	var pages int
 
 	query := `SELECT * FROM books	WHERE id = $1;`
 
-	err := db.QueryRow(query, bookId).Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre)
+	err := db.QueryRow(query, bookId).Scan(&id, &title, &author, &pages, &publisher, &isbn, &description, &publishedAt, &genre, &cover_img)
 
 	if err != nil {
 		log.Fatal("Error fetching single book:", err)
@@ -113,18 +116,19 @@ func FetchSingleBook(db *sql.DB, bookId string) types.BookDetails {
 		Description: description,
 		PublishedAt: publishedAt,
 		Genre:       genre,
+		CoverImg:    cover_img,
 	}
 }
 
 // Create a book in the database
 func CreateBook(db *sql.DB, BookDetails types.BookDetails) {
 	query := `
-		INSERT INTO books (title, author, pages, publisher, isbn, description, published_at, genre)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO books (title, author, pages, publisher, isbn, description, published_at, genre, cover_img)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		ON CONFLICT (isbn) DO NOTHING;
 	`
 	fmt.Println("Creating book:", BookDetails.Title)
-	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre)
+	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre, BookDetails.CoverImg)
 
 	if err != nil {
 		log.Fatal("Error creating book:", err)
@@ -137,13 +141,13 @@ func CreateBook(db *sql.DB, BookDetails types.BookDetails) {
 func UpdateBook(db *sql.DB, BookDetails types.BookDetails, bookId string) error {
 	query := `
 	UPDATE books
-	SET title = $1, author = $2, pages = $3, publisher = $4, isbn = $5, description = $6, published_at = $7, genre = $8
-	WHERE id = $9;
+	SET title = $1, author = $2, pages = $3, publisher = $4, isbn = $5, description = $6, published_at = $7, genre = $8, cover_img = $9
+	WHERE id = $10;
 	`
 
 	fmt.Println(BookDetails.Genre)
 
-	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre, bookId)
+	_, err := db.Exec(query, BookDetails.Title, BookDetails.Author, BookDetails.Pages, BookDetails.Publisher, BookDetails.ISBN, BookDetails.Description, BookDetails.PublishedAt, BookDetails.Genre, BookDetails.CoverImg, bookId)
 
 	if err != nil {
 		log.Fatal("Error updating book:", err)
