@@ -21,6 +21,7 @@ func SetupRoutes(r *mux.Router) {
 
 	// Auth
 	r.HandleFunc("/login", middleware.Chain(session.LoginHandler, middleware.Logging()))
+	r.HandleFunc("/signup", middleware.Chain(session.SignupHandler, middleware.Logging()))
 	r.HandleFunc("/logout", middleware.Chain(session.LogoutHandler, middleware.Logging()))
 	r.HandleFunc("/update-user", middleware.Chain(session.AuthMiddleware(session.UpdateUserHandler), middleware.Logging()))
 	r.HandleFunc("/google-auth", middleware.Chain(handlers.GoogleAuthHandler, middleware.Logging())).Methods("POST")
