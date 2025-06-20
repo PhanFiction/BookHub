@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/sessions"
@@ -14,7 +15,7 @@ import (
 
 // Global var to be used
 // key must be 16, 24 or 32 bytes long (AES-128, AES-192 or AES-256)
-var Store = sessions.NewCookieStore([]byte("super-secret-key"))
+var Store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET_KEY")))
 
 // Handles login for user
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
