@@ -30,10 +30,13 @@ func GoogleAuthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	googleID := payload.Subject
-	email := payload.Claims["email"].(string)
-	name := payload.Claims["name"].(string)
-	username := payload.Claims["username"].(string)
-	avatar := payload.Claims["picture"].(string)
+	email, _ := payload.Claims["email"].(string)
+	name, _ := payload.Claims["name"].(string)
+	givenName, _ := payload.Claims["given_name"].(string)
+	familyName, _ := payload.Claims["family_name"].(string)
+	avatar, _ := payload.Claims["picture"].(string)
+
+	username := givenName + familyName
 
 	userDetail := types.User{
 		GoogleID: googleID,
