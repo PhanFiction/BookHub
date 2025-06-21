@@ -23,7 +23,6 @@ func CreateUserTable(db *sql.DB) {
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	);
 	`
-
 	_, err := db.Exec(query)
 
 	if err != nil {
@@ -79,10 +78,11 @@ func UpdateUser(db *sql.DB, id string, name, username, email, password string) e
 
 func GoogleAuth(db *sql.DB, UserDetail types.User) (types.User, error) {
 	var user types.User
+	username := user.FamilyName + user.FamilyName
 
 	query := `SELECT id, google_id, email, name, username, avatar_url FROM users WHERE google_id = $1 OR email = $2;`
 
-	err := db.QueryRow(query, UserDetail.GoogleID, UserDetail.Email).Scan(&user.ID, &user.GoogleID, &user.Email, &user.Name, &user.Username, &user.Avatar)
+	err := db.QueryRow(query, UserDetail.GoogleID, UserDetail.Email).Scan(&user.ID, &user.GoogleID, &user.Email, &user.Name, &username, &user.Avatar)
 
 	// Check if user exists
 	// If user doesn't exist, create a new user
@@ -103,8 +103,7 @@ func GoogleAuth(db *sql.DB, UserDetail types.User) (types.User, error) {
 		// Set user details
 		user.GoogleID = UserDetail.GoogleID
 		user.Email = UserDetail.Email
-		user.Name = UserDetail.Name
-		user.Username = UserDetail.Username
+		user.Username = UserDetail.GivenName + "_" + UserDetail.FamilyName // basic username
 		user.Avatar = UserDetail.Avatar
 	}
 
