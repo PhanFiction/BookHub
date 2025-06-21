@@ -23,13 +23,15 @@ type Data struct {
 }
 
 type User struct {
-	ID       int
-	Username string
-	Name     string
-	Email    string
-	Password string
-	Avatar   string
-	GoogleID string
+	ID         int
+	Username   string
+	Name       string
+	Email      string
+	Password   string
+	Avatar     string
+	GoogleID   string
+	GivenName  string
+	FamilyName string
 }
 
 // Type function that takes an http.HandlerFunc and returns another http.HandlerFunc.
