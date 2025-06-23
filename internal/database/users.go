@@ -32,12 +32,12 @@ func CreateUserTable(db *sql.DB) {
 	fmt.Println("Users table created or already exists.")
 }
 
-func GetUser(db *sql.DB, username string) (types.User, error) {
-	query := `SELECT id, username, name, email, password FROM users WHERE username = $1;`
+func GetUser(db *sql.DB, email string) (types.User, error) {
+	query := `SELECT id, username, name, email, password FROM users WHERE email = $1;`
 	var user types.User
 
 	// return single row
-	err := db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.Password)
+	err := db.QueryRow(query, email).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.Password)
 
 	fmt.Println(user, err)
 
