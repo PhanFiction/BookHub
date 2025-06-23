@@ -23,8 +23,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&body)
 
 	// Check if user exists in the database
-	userData, err := database.GetUser(database.DB, body.Username)
-	fmt.Println(userData.Username, userData.Password)
+	userData, err := database.GetUser(database.DB, body.Email)
+	fmt.Println(userData.Email, userData.Password)
 
 	if err != nil {
 		http.Error(w, "Could not retrieve user", http.StatusInternalServerError)
@@ -48,7 +48,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	// Send JSON Data
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	json.NewEncoder(w).Encode(map[string]any{
 		"message":       "Login successful",
 		"authenticated": true,
 		"user_id":       userData.ID,
