@@ -34,5 +34,15 @@ type User struct {
 	FamilyName string
 }
 
+type GoogleUser struct {
+	GoogleID   string
+	Email      string
+	Name       string
+	Username   string
+	Avatar     string
+	GivenName  string
+	FamilyName string
+}
+
 // Type function that takes an http.HandlerFunc and returns another http.HandlerFunc.
 type Middleware func(http.HandlerFunc) http.HandlerFunc
