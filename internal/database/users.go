@@ -39,8 +39,6 @@ func GetUser(db *sql.DB, email string) (types.User, error) {
 	// return single row
 	err := db.QueryRow(query, email).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.Password)
 
-	fmt.Println(user, err)
-
 	if err != nil {
 		return user, err
 	}
@@ -78,11 +76,10 @@ func UpdateUser(db *sql.DB, id string, name, username, email, password string) e
 
 func GoogleAuth(db *sql.DB, UserDetail types.User) (types.User, error) {
 	var user types.User
-	username := user.FamilyName + user.FamilyName
 
 	query := `SELECT id, google_id, email, name, username, avatar_url FROM users WHERE google_id = $1 OR email = $2;`
 
-	err := db.QueryRow(query, UserDetail.GoogleID, UserDetail.Email).Scan(&user.ID, &user.GoogleID, &user.Email, &user.Name, &username, &user.Avatar)
+	err := db.QueryRow(query, UserDetail.GoogleID, UserDetail.Email).Scan(&user.ID, &user.GoogleID, &user.Email, &user.Name, &user.Username, &user.Avatar)
 
 	// Check if user exists
 	// If user doesn't exist, create a new user
@@ -103,7 +100,8 @@ func GoogleAuth(db *sql.DB, UserDetail types.User) (types.User, error) {
 		// Set user details
 		user.GoogleID = UserDetail.GoogleID
 		user.Email = UserDetail.Email
-		user.Username = UserDetail.GivenName + "_" + UserDetail.FamilyName // basic username
+		user.Username = UserDetail.Username
+		user.Name = UserDetail.Name
 		user.Avatar = UserDetail.Avatar
 	}
 
