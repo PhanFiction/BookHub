@@ -54,7 +54,17 @@ func GoogleAuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Save user session or generate a JWT
+	googleUser := types.GoogleUser{
+		GoogleID:   user.GoogleID,
+		Email:      user.Email,
+		Name:       user.Name,
+		Username:   user.Username,
+		Avatar:     user.Avatar,
+		GivenName:  givenName,
+		FamilyName: familyName,
+	}
+
+	// Save user session
 	session, _ := session.Store.Get(r, "session")
 	session.Values["authenticated"] = true
 	session.Values["user_id"] = user.ID
@@ -62,10 +72,10 @@ func GoogleAuthHandler(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	json.NewEncoder(w).Encode(struct {
-		Message string     `json:"message"`
-		User    types.User `json:"user"`
+		Message string           `json:"message"`
+		User    types.GoogleUser `json:"user"`
 	}{
 		Message: "Logged in successfully",
-		User:    user,
+		User:    googleUser,
 	})
 }
