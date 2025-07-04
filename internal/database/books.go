@@ -175,7 +175,8 @@ func DeleteBook(db *sql.DB, bookID string) error {
 	return err
 }
 
-// Save a book to the database
+// Save the book to the saved_books table
+// This function saves a book for a user, preventing duplicates
 func SaveBook(db *sql.DB, userID, bookID int) {
 	query := `
 	INSERT INTO saved_books (user_id, book_id)
