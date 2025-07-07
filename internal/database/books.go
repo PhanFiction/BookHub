@@ -191,3 +191,31 @@ func SaveBook(db *sql.DB, userID, bookID int) {
 
 	fmt.Println("Book saved to database.")
 }
+
+func CheckIfBookExists(db *sql.DB, userId string, bookID int) bool {
+	query := `SELECT COUNT(*) FROM saved_books WHERE user_id = $1 AND book_id = $2;`
+	var count int
+	err := db.QueryRow(query, userId, bookID).Scan(&count)
+
+	if err != nil {
+		log.Fatal("Error checking if book exists:", err)
+	}
+
+	return count > 0
+}
+
+func DeleteSavedBook(db *sql.DB, userID, bookID int) error {
+	query := `
+	DELETE FROM saved_books
+	WHERE user_id = $1 AND book_id = $2;
+	`
+	_, err := db.Exec(query, userID, bookID)
+
+	if err != nil {
+		log.Fatal("Error deleting saved book:", err)
+	}
+
+	fmt.Println("Saved book deleted from database.")
+
+	return err
+}
