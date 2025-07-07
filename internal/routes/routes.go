@@ -17,6 +17,7 @@ func SetupRoutes(r *mux.Router) {
 	r.HandleFunc("/books/create-book", middleware.Chain(session.AuthMiddleware(handlers.CreateBookHandler), middleware.Logging()))
 	r.HandleFunc("/books/update-book/{id}", middleware.Chain(session.AuthMiddleware(handlers.UpdateBookHandler), middleware.Logging()))
 	r.HandleFunc("/books", middleware.Chain(handlers.FetchBooksHandler, middleware.Logging()))
+	r.HandleFunc("/books/save-book/{id}", handlers.SaveBookHandler)
 	r.HandleFunc("/", middleware.Chain(handlers.HomeHandler, middleware.Logging())).Methods("GET")
 
 	// Auth
