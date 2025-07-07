@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"bookhub/internal/database"
+	"bookhub/internal/session"
 	"bookhub/internal/types"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -94,5 +96,45 @@ func DeleteBookHandler(w http.ResponseWriter, r *http.Request) {
 		Message: "Book successfully deleted",
 	}
 
+	json.NewEncoder(w).Encode(data)
+}
+
+// SaveBookHandler saves a book for the user
+func SaveBookHandler(w http.ResponseWriter, r *http.Request) {
+	// save book and delete saved book for user
+	bookIdStr := mux.Vars(r)["id"] // extract bookid from params
+
+	// Get user ID from session
+	session, _ := session.Store.Get(r, "session")
+	userID, _ := session.Values["user_id"].(int)
+
+	// Convert bookId from string to int
+	bookId, err := strconv.Atoi(bookIdStr)
+	if err != nil {
+		http.Error(w, "Invalid book ID", http.StatusBadRequest)
+		return
+	}
+
+	// Check if the book is already saved
+	exists := database.CheckIfBookExists(database.DB, strconv.Itoa(userID), bookId)
+	fmt.Println("Book exists:", exists)
+	if exists {
+		// If the book is already saved, delete it
+		err = database.DeleteSavedBook(database.DB, userID, bookId)
+		if err != nil {
+			http.Error(w, "Error deleting saved book", http.StatusInternalServerError)
+			return
+		}
+		data := types.Data{
+			Message: "Book deleted successfully",
+		}
+		json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	database.SaveBook(database.DB, userID, bookId)
+	data := types.Data{
+		Message: "Book saved successfully",
+	}
 	json.NewEncoder(w).Encode(data)
 }
