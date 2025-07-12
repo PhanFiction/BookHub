@@ -215,7 +215,5 @@ func DeleteSavedBook(db *sql.DB, userID, bookID int) error {
 		log.Fatal("Error deleting saved book:", err)
 	}
 
-	fmt.Println("Saved book deleted from database.")
-
 	return err
 }
